@@ -40,9 +40,9 @@ public final class TransitionController: NSObject {
         return interactiveTransition
     }()
     
-    fileprivate(set) var presentingViewController: UIViewController!
+    fileprivate(set) var presentingViewController: UIViewController?
     
-    fileprivate(set) var presentedViewController: UIViewController!
+    fileprivate(set) var presentedViewController: UIViewController?
 
     /// Type Safe Present for Swift
     public func present<T: View2ViewTransitionPresented, U: View2ViewTransitionPresenting>(viewController presentedViewController: T, on presentingViewController: U, attached: UIViewController, completion: (() -> Void)?) where T: UIViewController, U: UIViewController {

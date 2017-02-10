@@ -38,14 +38,21 @@ open class DismissInteractiveTransition: UIPercentDrivenInteractiveTransition {
             
             switch self.transitionController.type {
             case .presenting:
-                self.transitionController.presentedViewController.dismiss(animated: true, completion: nil)
+                self.transitionController.presentedViewController?.dismiss(animated: true, completion: nil)
             case .pushing:
-                self.transitionController.presentedViewController.navigationController!.popViewController(animated: true)
+                _ = self.transitionController.presentedViewController?.navigationController!.popViewController(animated: true)
             }
             
             return
         }
         
+        guard let animationController = animationController,
+            let presentingViewController = transitionController.presentingViewController,
+            let destinationTransitionView = animationController.destinationTransitionView,
+            let initialTransitionView = animationController.initialTransitionView else
+        {
+            return
+        }
         // Get Progress
         let range: Float = Float(UIScreen.main.bounds.size.width)
         let location: CGPoint = panGestureRecognizer.location(in: panGestureRecognizer.view)
@@ -61,8 +68,8 @@ open class DismissInteractiveTransition: UIPercentDrivenInteractiveTransition {
             
             update(progress)
             
-            self.animationController.destinationTransitionView.alpha = 1.0
-            self.animationController.initialTransitionView.alpha = 0.0
+            destinationTransitionView.alpha = 1.0
+            initialTransitionView.alpha = 0.0
             
             // Affine Transform
             let scale: CGFloat = (1000.0 - CGFloat(distance))/1000.0
@@ -70,8 +77,8 @@ open class DismissInteractiveTransition: UIPercentDrivenInteractiveTransition {
             transform = transform.scaledBy(x: scale, y: scale)
             transform = transform.translatedBy(x: translation.x/scale, y: translation.y/scale)
             
-            self.animationController.destinationTransitionView.transform = transform
-            self.animationController.initialTransitionView.transform = transform
+            destinationTransitionView.transform = transform
+            initialTransitionView.transform = transform
             
         case .cancelled:
             
@@ -90,14 +97,14 @@ open class DismissInteractiveTransition: UIPercentDrivenInteractiveTransition {
                 let duration: Double = Double(self.duration)*Double(progress)
                 UIView.animate(withDuration: duration, delay: 0.0, usingSpringWithDamping: 1.0, initialSpringVelocity: 0.0, options: UIViewAnimationOptions(), animations: {
                     
-                    self.animationController.destinationTransitionView.frame = self.animationController.destinationFrame
-                    self.animationController.initialTransitionView.frame = self.animationController.destinationFrame
+                    destinationTransitionView.frame = self.animationController.destinationFrame
+                    initialTransitionView.frame = self.animationController.destinationFrame
                     
                 }, completion: { _ in
                         
                     // Cancel Transition
-                    self.animationController.destinationTransitionView.removeFromSuperview()
-                    self.animationController.initialTransitionView.removeFromSuperview()
+                    destinationTransitionView.removeFromSuperview()
+                    initialTransitionView.removeFromSuperview()
                    
                     self.animationController.destinationView.isHidden = false
                     self.animationController.initialView.isHidden = false
@@ -109,29 +116,29 @@ open class DismissInteractiveTransition: UIPercentDrivenInteractiveTransition {
             } else {
                 
                 finish()
-                self.transitionController.presentingViewController.view.isUserInteractionEnabled = false
+                presentingViewController.view.isUserInteractionEnabled = false
                 
                 let duration: Double = animationController.transitionDuration
                 UIView.animate(withDuration: duration, delay: 0.0, usingSpringWithDamping: 0.7, initialSpringVelocity: 0.0, options: UIViewAnimationOptions(), animations: {
                     
-                    self.animationController.destinationTransitionView.alpha = 0.0
-                    self.animationController.initialTransitionView.alpha = 1.0
+                    destinationTransitionView.alpha = 0.0
+                    initialTransitionView.alpha = 1.0
 
-                    self.animationController.destinationTransitionView.frame = self.animationController.initialFrame
-                    self.animationController.initialTransitionView.frame = self.animationController.initialFrame
+                    destinationTransitionView.frame = self.animationController.initialFrame
+                    initialTransitionView.frame = self.animationController.initialFrame
                     
                 }, completion: { _ in
                     
                     if self.transitionController.type == .pushing {
                             
-                        self.animationController.destinationTransitionView.removeFromSuperview()
-                        self.animationController.initialTransitionView.removeFromSuperview()
+                        destinationTransitionView.removeFromSuperview()
+                        initialTransitionView.removeFromSuperview()
                             
                         self.animationController.initialView.isHidden = false
                         self.animationController.destinationView.isHidden = false
                     }
                     
-                    self.transitionController.presentingViewController.view.isUserInteractionEnabled = true
+                    presentingViewController.view.isUserInteractionEnabled = true
                     self.animationController.initialView.isHidden = false
                     self.transitionContext.completeTransition(true)
                 })
